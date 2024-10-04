@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-// createExternalWorkspace 发送请求到外部 API 创建工作区
+// 发送请求到外部 API 创建工作区
 func CreateExternalWorkspace(name string) (string, error) {
 	url := "http://103.63.139.165:3001/api/v1/workspace/new"
 	payload := map[string]string{"name": name}
@@ -36,7 +36,7 @@ func CreateExternalWorkspace(name string) (string, error) {
 	return apiResp.Workspace.Slug, nil
 }
 
-// UpdateWorkspaceID 更新 workspace_id
+// 更新 workspace_id
 func UpdateWorkspaceID(userID int, slug string) error {
 	query := `UPDATE workspace_permission SET workspace_id = ? WHERE user_id = ?`
 	_, err := repository.DB.Exec(query, slug, userID)
@@ -70,21 +70,15 @@ func DeleteExternalWorkspace(slug string) error {
 }
 
 func ResetWorkspaceID(userID int) error {
-	db, err := sql.Open("mysql", "user:password@/dbname")
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
 	query := `UPDATE workspace_permission SET workspace_id = NULL WHERE user_id = ?`
-	_, err = db.Exec(query, userID)
+	_, err := repository.DB.Exec(query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to reset workspace_id: %v", err)
 	}
 	return nil
 }
 
-// GetWorkspaceSlug 根据 userID 获取 workspace_id (slug)
+// 根据 userID 获取 workspace_id (slug)
 func GetWorkspaceSlug(userID int) (string, error) {
 	var slug string
 	query := `SELECT workspace_id FROM workspace_permission WHERE user_id = ?`

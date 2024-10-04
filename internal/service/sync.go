@@ -26,14 +26,12 @@ func syncUsers() {
 
 	defer tx.Rollback()
 
-	// 删除workspace_permission中不存在于pre_users的用户
 	_, err = tx.Exec("DELETE FROM workspace_permission WHERE user_id NOT IN (SELECT userid FROM pre_users)")
 	if err != nil {
 		log.Println("Failed to delete users:", err)
 		return
 	}
 
-	// 插入pre_users中新的用户到workspace_permission
 	_, err = tx.Exec(`
         INSERT INTO workspace_permission (user_id, create_time, update_time)
         SELECT userid, ?, ? FROM pre_users
@@ -44,7 +42,6 @@ func syncUsers() {
 		return
 	}
 
-	// 更新已存在的用户的更新时间
 	_, err = tx.Exec(`
         UPDATE workspace_permission 
         SET update_time = ?

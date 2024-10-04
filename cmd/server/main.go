@@ -16,7 +16,6 @@ func main() {
 
 	repository.InitDB(&cfg.Database)
 
-	// 设置路由
 	api.SetupRoutes()
 
 	log.Printf("Server starting on http://localhost%s/", cfg.Server.Port)

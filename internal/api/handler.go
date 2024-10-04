@@ -9,12 +9,13 @@ import (
 	"net/http"
 )
 
-// handleIndex 处理主页路由
+// 处理主页路由
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
 		return
 	}
+
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -22,13 +23,18 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, dootask!")
 }
 
-// handleSync 处理同步路由
+// 处理同步路由
 func handleSync(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
 		return
 	}
-	go service.SyncUsers() // 启动同步任务
+	if r.Method != "GET" {
+		JsonResponse(w, map[string]string{"error": "Only GET method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	go service.SyncUsers()
 	response := struct {
 		Message string `json:"message"`
 	}{
@@ -38,7 +44,7 @@ func handleSync(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, response, http.StatusOK)
 }
 
-// handleSetPermission 处理设置权限的路由
+// 处理设置权限的路由
 func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
@@ -79,12 +85,17 @@ func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, resp, http.StatusOK)
 }
 
-// handleCheckWorkspaceID 处理检查 workspace_id 的路由
+// 处理检查 workspace_id 的路由
 func handleCheckWorkspaceID(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
 		return
 	}
+	if r.Method != "GET" {
+		JsonResponse(w, map[string]string{"error": "Only GET method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
 	count, err := service.CheckWorkspacePermissions(repository.DB)
 	if err != nil {
 		JsonResponse(w, map[string]string{"error": "Failed to fetch data"}, http.StatusInternalServerError)
@@ -94,9 +105,13 @@ func handleCheckWorkspaceID(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, map[string]int{"count": count}, http.StatusOK)
 }
 
-// handleCreateWorkspace 处理创建工作区的请求
+// 处理创建工作区的请求
 func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	var req model.CreateWorkspaceRequest
+	if r.Method != "POST" {
+		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
 		return
@@ -109,7 +124,6 @@ func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 将 slug 更新到数据库
 	if err := service.UpdateWorkspaceID(req.UserID, slug); err != nil {
 		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 		return
@@ -120,7 +134,7 @@ func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 
 func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
-		http.Error(w, "Only DELETE method is allowed", http.StatusMethodNotAllowed)
+		JsonResponse(w, map[string]string{"error": "Only DELETE method is allowed"}, http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -128,29 +142,25 @@ func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 		UserID int `json:"user_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
 		return
 	}
 
-	// 从数据库获取 slug
 	slug, err := service.GetWorkspaceSlug(req.UserID)
 	if err != nil {
-		http.Error(w, "Failed to retrieve workspace slug", http.StatusInternalServerError)
+		JsonResponse(w, map[string]string{"error": "Failed to retrieve workspace slug"}, http.StatusInternalServerError)
 		return
 	}
 
-	// 调用外部 API 删除工作区
 	if err := service.DeleteExternalWorkspace(slug); err != nil {
-		http.Error(w, "Failed to delete workspace", http.StatusInternalServerError)
+		JsonResponse(w, map[string]string{"error": "Failed to delete workspace"}, http.StatusInternalServerError)
 		return
 	}
 
-	// 将数据库中的 workspace_id 设置为 NULL
 	if err := service.ResetWorkspaceID(req.UserID); err != nil {
-		http.Error(w, "Failed to reset workspace ID", http.StatusInternalServerError)
+		JsonResponse(w, map[string]string{"error": "Failed to reset workspace ID"}, http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Workspace deleted successfully"))
+	JsonResponse(w, map[string]string{"message": "Workspace deleted successfully"}, http.StatusOK)
 }
