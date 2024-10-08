@@ -60,7 +60,15 @@ body
     "avatar": "sk123"
 }
 ```
-### 七、查询已获授权用户 (GET)
+### 七、查询已获授权用户 (POST)
 ```
 http://127.0.0.1:5555/get-user
+```
+```
+headers
+"Content-Type: application/json"
+body
+{
+"user_id": 1
+}
 ```

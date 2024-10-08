@@ -20,5 +20,5 @@ func SetupRoutes() {
 	http.HandleFunc("/create", handleCreateWorkspace)
 	http.HandleFunc("/delete-ws", handleDeleteWorkspace)
 	http.HandleFunc("/new", handleNewThread)
-	http.HandleFunc("/get-user", handleGetWorkspaceUsers)
+	http.HandleFunc("/get-permission", handleGetWorkspaceUsers)
 }

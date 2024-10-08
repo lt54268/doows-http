@@ -198,16 +198,24 @@ func handleNewThread(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetWorkspaceUsers(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		JsonResponse(w, map[string]string{"error": "Only GET method is allowed"}, http.StatusMethodNotAllowed)
+	if r.Method != "POST" {
+		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
 		return
 	}
 
-	users, err := service.GetUsersWithCreatePermission(repository.DB)
+	var req model.CreateWorkspaceRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		JsonResponse(w, map[string]string{"error": "Failed to retrieve users"}, http.StatusInternalServerError)
+		JsonResponse(w, map[string]string{"error": "Invalid request body"}, http.StatusBadRequest)
 		return
 	}
 
-	JsonResponse(w, map[string][]int{"users": users}, http.StatusOK)
+	isCreate, err := service.GetUsersWithCreatePermission(req.UserID)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to retrieve user create permission"}, http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]bool{"is_create": isCreate}
+	JsonResponse(w, response, http.StatusOK)
 }

@@ -44,26 +44,16 @@ func CheckWorkspacePermissions(db *sql.DB) (int, error) {
 	return count, nil
 }
 
-func GetUsersWithCreatePermission(db *sql.DB) ([]int, error) {
-	query := "SELECT user_id FROM pre_workspace_permissions WHERE is_create <> 'false'"
-	rows, err := db.Query(query)
+func GetUsersWithCreatePermission(userID int) (bool, error) {
+	query := "SELECT is_create FROM pre_workspace_permissions WHERE user_id = ?"
+	var isCreate int
+	err := repository.DB.QueryRow(query, userID).Scan(&isCreate)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var users []int
-	for rows.Next() {
-		var userID int
-		if err := rows.Scan(&userID); err != nil {
-			return nil, err
+		if err == sql.ErrNoRows {
+			return false, nil
 		}
-		users = append(users, userID)
+		return false, fmt.Errorf("error querying user create permission: %v", err)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return users, nil
+	return isCreate == 1, nil
 }
