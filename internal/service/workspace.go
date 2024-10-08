@@ -5,10 +5,14 @@ import (
 	"database/sql"
 	"doows/internal/model"
 	"doows/internal/repository"
+	"doows/pkg/settime"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 // 发送请求到外部 API 创建工作区
@@ -38,7 +42,7 @@ func CreateExternalWorkspace(name string) (string, error) {
 
 // 更新 workspace_id
 func UpdateWorkspaceID(userID int, slug string) error {
-	query := `UPDATE workspace_permission SET workspace_id = ? WHERE user_id = ?`
+	query := `UPDATE pre_workspace_permissions SET workspace_id = ? WHERE user_id = ?`
 	_, err := repository.DB.Exec(query, slug, userID)
 	if err != nil {
 		return fmt.Errorf("failed to update workspace_id: %v", err)
@@ -70,7 +74,7 @@ func DeleteExternalWorkspace(slug string) error {
 }
 
 func ResetWorkspaceID(userID int) error {
-	query := `UPDATE workspace_permission SET workspace_id = NULL WHERE user_id = ?`
+	query := `UPDATE pre_workspace_permissions SET workspace_id = NULL WHERE user_id = ?`
 	_, err := repository.DB.Exec(query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to reset workspace_id: %v", err)
@@ -81,7 +85,7 @@ func ResetWorkspaceID(userID int) error {
 // 根据 userID 获取 workspace_id (slug)
 func GetWorkspaceSlug(userID int) (string, error) {
 	var slug string
-	query := `SELECT workspace_id FROM workspace_permission WHERE user_id = ?`
+	query := `SELECT workspace_id FROM pre_workspace_permissions WHERE user_id = ?`
 	err := repository.DB.QueryRow(query, userID).Scan(&slug)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -90,4 +94,59 @@ func GetWorkspaceSlug(userID int) (string, error) {
 		return "", fmt.Errorf("error querying workspace slug: %v", err)
 	}
 	return slug, nil
+}
+
+func StoreChatData(model, avatar, threadSlug string, userID int) error {
+	currentTime := settime.GetCurrentFormattedTime()
+	query := `
+	INSERT INTO pre_history_aichats (model, avatar, session_id, user_id, create_time, update_time)
+	VALUES (?, ?, ?, ?, ?, ?)
+	`
+	_, err := repository.DB.Exec(query, model, avatar, threadSlug, userID, currentTime, currentTime)
+	if err != nil {
+		log.Printf("Error storing chat data: %v", err)
+		return err
+	}
+	return nil
+}
+
+func CreateNewThread(slug string) (string, error) {
+	url := fmt.Sprintf("http://103.63.139.165:3001/api/v1/workspace/%s/thread/new", slug)
+	reqBody := bytes.NewBuffer([]byte("{}"))
+	req, err := http.NewRequest("POST", url, reqBody)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer CM34YVB-3HJM2RS-PRGK1D2-ECZD4R6")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var respData struct {
+		Thread struct {
+			Slug string `json:"slug"`
+		} `json:"thread"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&respData); err != nil {
+		return "", err
+	}
+
+	return respData.Thread.Slug, nil
+}
+
+func ExtractUserID(slug string) (int, error) {
+	parts := strings.Split(slug, "-")
+	if len(parts) < 4 {
+		return 0, fmt.Errorf("invalid slug format")
+	}
+	userID, err := strconv.Atoi(parts[3])
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert user ID: %v", err)
+	}
+	return userID, nil
 }

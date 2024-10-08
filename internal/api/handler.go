@@ -164,3 +164,50 @@ func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 
 	JsonResponse(w, map[string]string{"message": "Workspace deleted successfully"}, http.StatusOK)
 }
+
+func handleNewThread(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.NewThreadRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JsonResponse(w, map[string]string{"error": "Invalid request body"}, http.StatusBadRequest)
+		return
+	}
+
+	threadSlug, err := service.CreateNewThread(req.Slug)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to create new thread"}, http.StatusInternalServerError)
+		return
+	}
+
+	userID, err := service.ExtractUserID(req.Slug)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to extract user ID"}, http.StatusInternalServerError)
+		return
+	}
+
+	if err := service.StoreChatData(req.Model, req.Avatar, threadSlug, userID); err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to store chat data"}, http.StatusInternalServerError)
+		return
+	}
+
+	JsonResponse(w, map[string]string{"thread_slug": threadSlug}, http.StatusOK)
+}
+
+func handleGetWorkspaceUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		JsonResponse(w, map[string]string{"error": "Only GET method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	users, err := service.GetUsersWithCreatePermission(repository.DB)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to retrieve users"}, http.StatusInternalServerError)
+		return
+	}
+
+	JsonResponse(w, map[string][]int{"users": users}, http.StatusOK)
+}

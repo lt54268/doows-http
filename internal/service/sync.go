@@ -2,6 +2,7 @@ package service
 
 import (
 	"doows/internal/repository"
+	"doows/pkg/settime"
 	"log"
 	"time"
 )
@@ -17,7 +18,7 @@ func SyncUsers() {
 }
 
 func syncUsers() {
-	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	currentTime := settime.GetCurrentFormattedTime()
 	tx, err := repository.DB.Begin()
 	if err != nil {
 		log.Println("Failed to begin transaction:", err)
@@ -26,16 +27,16 @@ func syncUsers() {
 
 	defer tx.Rollback()
 
-	_, err = tx.Exec("DELETE FROM workspace_permission WHERE user_id NOT IN (SELECT userid FROM pre_users)")
+	_, err = tx.Exec("DELETE FROM pre_workspace_permissions WHERE user_id NOT IN (SELECT userid FROM pre_users)")
 	if err != nil {
 		log.Println("Failed to delete users:", err)
 		return
 	}
 
 	_, err = tx.Exec(`
-        INSERT INTO workspace_permission (user_id, create_time, update_time)
+        INSERT INTO pre_workspace_permissions (user_id, create_time, update_time)
         SELECT userid, ?, ? FROM pre_users
-        WHERE userid NOT IN (SELECT user_id FROM workspace_permission)
+        WHERE userid NOT IN (SELECT user_id FROM pre_workspace_permissions)
     `, currentTime, currentTime)
 	if err != nil {
 		log.Println("Failed to insert new users:", err)
@@ -43,7 +44,7 @@ func syncUsers() {
 	}
 
 	_, err = tx.Exec(`
-        UPDATE workspace_permission 
+        UPDATE pre_workspace_permissions 
         SET update_time = ?
         WHERE user_id IN (SELECT userid FROM pre_users)
     `, currentTime)

@@ -30,3 +30,9 @@ type ExternalAPIResponse struct {
 		Slug string `json:"slug"`
 	} `json:"workspace"`
 }
+
+type NewThreadRequest struct {
+	Slug   string `json:"slug"`
+	Model  string `json:"model"`
+	Avatar string `json:"avatar"`
+}

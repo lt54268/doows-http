@@ -14,7 +14,7 @@ func SetPermission(req model.SetPermissionRequest) (model.APIResponse, error) {
 		isCreateVal = 1
 	}
 
-	query := "UPDATE workspace_permission SET is_create = ? WHERE user_id = ?"
+	query := "UPDATE pre_workspace_permissions SET is_create = ? WHERE user_id = ?"
 	result, err := repository.DB.Exec(query, isCreateVal, req.UserID)
 	if err != nil {
 		return model.APIResponse{}, fmt.Errorf("error updating permission: %v", err)
@@ -34,7 +34,7 @@ func SetPermission(req model.SetPermissionRequest) (model.APIResponse, error) {
 
 // 检查 workspace_id 不为空的记录的数量
 func CheckWorkspacePermissions(db *sql.DB) (int, error) {
-	query := "SELECT COUNT(*) FROM workspace_permission WHERE workspace_id IS NOT NULL"
+	query := "SELECT COUNT(*) FROM pre_workspace_permissions WHERE workspace_id IS NOT NULL"
 	var count int
 	err := db.QueryRow(query).Scan(&count)
 	if err != nil {
@@ -42,4 +42,28 @@ func CheckWorkspacePermissions(db *sql.DB) (int, error) {
 	}
 
 	return count, nil
+}
+
+func GetUsersWithCreatePermission(db *sql.DB) ([]int, error) {
+	query := "SELECT user_id FROM pre_workspace_permissions WHERE is_create <> 'false'"
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []int
+	for rows.Next() {
+		var userID int
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		users = append(users, userID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
