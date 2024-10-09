@@ -36,3 +36,27 @@ type NewThreadRequest struct {
 	Model  string `json:"model"`
 	Avatar string `json:"avatar"`
 }
+
+type ChatHistoryRequest struct {
+	WorkspaceSlug string `json:"workspaceSlug"`
+	ThreadSlug    string `json:"threadSlug"`
+}
+
+type ChatHistory struct {
+	History []ChatMessage `json:"history"`
+}
+
+type ChatMessage struct {
+	Content string `json:"content"`
+}
+
+type HistoryChat struct {
+	ID           int64  `json:"id"`
+	SessionID    string `json:"session_id"`
+	Model        string `json:"model"`
+	UserID       string `json:"user_id"`
+	LastMessages string `json:"last_messages"`
+	CreateTime   string `json:"create_time"`
+	UpdateTime   string `json:"update_time"`
+	Avatar       string `json:"avatar"`
+}

@@ -107,6 +107,7 @@ func handleCheckWorkspaceID(w http.ResponseWriter, r *http.Request) {
 
 // 处理创建工作区的请求
 func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
 	var req model.CreateWorkspaceRequest
 	if r.Method != "POST" {
 		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
@@ -133,6 +134,7 @@ func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
 	if r.Method != "DELETE" {
 		JsonResponse(w, map[string]string{"error": "Only DELETE method is allowed"}, http.StatusMethodNotAllowed)
 		return
@@ -166,6 +168,7 @@ func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNewThread(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
 	if r.Method != "POST" {
 		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
 		return
@@ -198,6 +201,7 @@ func handleNewThread(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetWorkspaceUsers(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
 	if r.Method != "POST" {
 		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
 		return
@@ -218,4 +222,54 @@ func handleGetWorkspaceUsers(w http.ResponseWriter, r *http.Request) {
 
 	response := map[string]bool{"is_create": isCreate}
 	JsonResponse(w, response, http.StatusOK)
+}
+
+func handleGetLastChat(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if r.Method != "POST" {
+		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.ChatHistoryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JsonResponse(w, map[string]string{"error": "Invalid request body"}, http.StatusBadRequest)
+		return
+	}
+
+	chatHistory, err := service.FetchChatHistory(req.WorkspaceSlug, req.ThreadSlug)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to fetch chat history"}, http.StatusInternalServerError)
+		return
+	}
+
+	lastMessage := chatHistory[len(chatHistory)-1]
+	chat, err := service.UpdateLastMessage(req.ThreadSlug, lastMessage.Content)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": "Failed to store last message"}, http.StatusInternalServerError)
+		return
+	}
+
+	JsonResponse(w, chat, http.StatusOK)
+}
+
+func handleGetChatList(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.CreateWorkspaceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JsonResponse(w, map[string]string{"error": "Invalid request body"}, http.StatusBadRequest)
+		return
+	}
+
+	chats, err := service.FetchChatsByUserID(req.UserID)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	JsonResponse(w, chats, http.StatusOK)
 }

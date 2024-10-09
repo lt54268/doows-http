@@ -14,8 +14,8 @@ headers
  "Content-Type: application/json" 
 body
  {
-   "user_id": 1,           // 用户ID
-   "is_create": true       // true:允许创建工作区，false:不允许创建工作区
+  "user_id": 1,           // 用户ID
+  "is_create": true       // true:允许创建工作区，false:不允许创建工作区
  }
  ```
 ### 三、创建工作区 (POST)
@@ -27,7 +27,7 @@ headers
  "Content-Type: application/json" 
 body
  {
-   "user_id": 1           // 用户ID
+  "user_id": 1           // 用户ID
  }
  ```
  ### 四、删除工作区 (DELETE)
@@ -39,7 +39,7 @@ headers
  "Content-Type: application/json" 
 body
  {
-   "user_id": 1           // 用户ID
+  "user_id": 1           // 用户ID
  }
  ```
 ### 五、检查已创建的工作区数量 (GET)
@@ -55,9 +55,9 @@ headers
  "Content-Type: application/json" 
 body
 {
-    "slug": "workspace-for-user-1",
-    "model": "ChatGPT",
-    "avatar": "sk123"
+  "slug": "workspace-for-user-1",
+  "model": "ChatGPT",
+  "avatar": "sk123"
 }
 ```
 ### 七、查询已获授权用户 (POST)
@@ -69,6 +69,6 @@ headers
 "Content-Type: application/json"
 body
 {
-"user_id": 1
+  "user_id": 1
 }
 ```
