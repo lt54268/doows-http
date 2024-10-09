@@ -72,3 +72,28 @@ body
   "user_id": 1
 }
 ```
+### 八、更新最后一条对话 (POST)
+```
+http://127.0.0.1:5555/update-last
+```
+```
+headers
+"Content-Type: application/json"
+body
+{
+  "workspaceSlug": "workspace-for-user-1",              // 工作区 Slug
+  "threadSlug": "d4c12455-92cc-442b-b701-58c4972dfcd0"  // 对话 Slug
+}
+```
+### 九、获取对话列表 (POST)
+```
+http://127.0.0.1:5555/get-list
+```
+```
+headers
+"Content-Type: application/json"
+body
+{
+  "user_id": 1
+}
+```

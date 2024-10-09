@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// 设置定时
 func SyncUsers() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
@@ -17,6 +18,7 @@ func SyncUsers() {
 	}
 }
 
+// 同步 pre_users 表用户
 func syncUsers() {
 	currentTime := settime.GetCurrentFormattedTime()
 	tx, err := repository.DB.Begin()

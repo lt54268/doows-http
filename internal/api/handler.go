@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-// 处理主页路由
+// 主页路由
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
@@ -23,7 +23,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, dootask!")
 }
 
-// 处理同步路由
+// 同步路由
 func handleSync(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
@@ -44,7 +44,7 @@ func handleSync(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, response, http.StatusOK)
 }
 
-// 处理设置权限的路由
+// 设置权限路由
 func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
@@ -55,14 +55,13 @@ func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 检查 workspace_id 不为空的记录的总数
 	count, err := service.CheckWorkspacePermissions(repository.DB)
 	if err != nil {
 		JsonResponse(w, map[string]string{"error": "Failed to check workspace permissions"}, http.StatusInternalServerError)
 		return
 	}
 
-	// 定义一个阈值
+	// 允许的最大工作区数量
 	const maxAllowed = 3
 	if count >= maxAllowed {
 		JsonResponse(w, map[string]string{"error": "The limit of non-empty workspace_ids has been reached"}, http.StatusForbidden)
@@ -85,7 +84,7 @@ func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, resp, http.StatusOK)
 }
 
-// 处理检查 workspace_id 的路由
+// 统计已创建工作区路由
 func handleCheckWorkspaceID(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method == "OPTIONS" {
@@ -105,7 +104,7 @@ func handleCheckWorkspaceID(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, map[string]int{"count": count}, http.StatusOK)
 }
 
-// 处理创建工作区的请求
+// 创建工作区路由
 func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	var req model.CreateWorkspaceRequest
@@ -133,6 +132,7 @@ func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, map[string]string{"slug": slug}, http.StatusOK)
 }
 
+// 删除工作区路由
 func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method != "DELETE" {
@@ -167,6 +167,7 @@ func handleDeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, map[string]string{"message": "Workspace deleted successfully"}, http.StatusOK)
 }
 
+// 新建会话路由
 func handleNewThread(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method != "POST" {
@@ -200,6 +201,7 @@ func handleNewThread(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, map[string]string{"thread_slug": threadSlug}, http.StatusOK)
 }
 
+// 获取用户是否有权限路由
 func handleGetWorkspaceUsers(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method != "POST" {
@@ -224,7 +226,8 @@ func handleGetWorkspaceUsers(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, response, http.StatusOK)
 }
 
-func handleGetLastChat(w http.ResponseWriter, r *http.Request) {
+// 更新最后一条对话路由
+func handleUpdateLastChat(w http.ResponseWriter, r *http.Request) {
 	setupCORS(&w, r)
 	if r.Method != "POST" {
 		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
@@ -253,6 +256,7 @@ func handleGetLastChat(w http.ResponseWriter, r *http.Request) {
 	JsonResponse(w, chat, http.StatusOK)
 }
 
+// 获取对话列表路由
 func handleGetChatList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)

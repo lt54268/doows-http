@@ -12,6 +12,7 @@ import (
 	"net/http"
 )
 
+// 获取某个对话窗口的所有历史记录
 func FetchChatHistory(workspaceSlug, threadSlug string) ([]model.ChatMessage, error) {
 	url := fmt.Sprintf("http://103.63.139.165:3001/api/v1/workspace/%s/thread/%s/chats", workspaceSlug, threadSlug)
 	req, err := http.NewRequest("GET", url, nil)
@@ -52,11 +53,10 @@ func UpdateLastMessage(sessionID, lastMessage string) (model.HistoryChat, error)
 		return model.HistoryChat{}, fmt.Errorf("error updating last message: %v", err)
 	}
 
-	// 检索更新后的记录
 	return GetHistoryChat(sessionID)
 }
 
-// FetchHistoryChat 根据 sessionID 获取记录
+// 根据 sessionID 获取记录
 func GetHistoryChat(sessionID string) (model.HistoryChat, error) {
 	var chat model.HistoryChat
 	query := `SELECT id, session_id, model, user_id, last_messages, create_time, update_time, avatar FROM pre_history_aichats WHERE session_id = ?`
@@ -70,6 +70,7 @@ func GetHistoryChat(sessionID string) (model.HistoryChat, error) {
 	return chat, nil
 }
 
+// 根据用户 ID 获取所有对话窗口的最后一条记录, 并按照更新时间降序排列
 func FetchChatsByUserID(userID int) ([]model.HistoryChat, error) {
 	var chats []model.HistoryChat
 	query := `

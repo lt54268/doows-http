@@ -44,6 +44,7 @@ func CheckWorkspacePermissions(db *sql.DB) (int, error) {
 	return count, nil
 }
 
+// 检查用户是否有创建权限
 func GetUsersWithCreatePermission(userID int) (bool, error) {
 	query := "SELECT is_create FROM pre_workspace_permissions WHERE user_id = ?"
 	var isCreate int

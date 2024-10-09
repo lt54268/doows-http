@@ -50,6 +50,7 @@ func UpdateWorkspaceID(userID int, slug string) error {
 	return nil
 }
 
+// 删除工作区
 func DeleteExternalWorkspace(slug string) error {
 	url := fmt.Sprintf("http://103.63.139.165:3001/api/v1/workspace/%s", slug)
 	req, err := http.NewRequest("DELETE", url, nil)
@@ -73,6 +74,7 @@ func DeleteExternalWorkspace(slug string) error {
 	return nil
 }
 
+// 重置 workspace_id 为 NULL
 func ResetWorkspaceID(userID int) error {
 	query := `UPDATE pre_workspace_permissions SET workspace_id = NULL WHERE user_id = ?`
 	_, err := repository.DB.Exec(query, userID)
@@ -96,6 +98,7 @@ func GetWorkspaceSlug(userID int) (string, error) {
 	return slug, nil
 }
 
+// 存储对话窗口 slug 、模型和头像
 func StoreChatData(model, avatar, threadSlug string, userID int) error {
 	currentTime := settime.GetCurrentFormattedTime()
 	query := `
@@ -110,6 +113,7 @@ func StoreChatData(model, avatar, threadSlug string, userID int) error {
 	return nil
 }
 
+// 创建新对话窗口
 func CreateNewThread(slug string) (string, error) {
 	url := fmt.Sprintf("http://103.63.139.165:3001/api/v1/workspace/%s/thread/new", slug)
 	reqBody := bytes.NewBuffer([]byte("{}"))
@@ -139,6 +143,7 @@ func CreateNewThread(slug string) (string, error) {
 	return respData.Thread.Slug, nil
 }
 
+// 从对话窗口的 slug 中提取用户 ID
 func ExtractUserID(slug string) (int, error) {
 	parts := strings.Split(slug, "-")
 	if len(parts) < 4 {
