@@ -94,3 +94,17 @@ func FetchChatsByUserID(userID int) ([]model.HistoryChat, error) {
 
 	return chats, nil
 }
+
+// 根据用户 ID 查询最新 update_time 的 session_id 并返回所有字段
+func FetchLatestSessionIDByUserID(userID int) (model.HistoryChat, error) {
+	var req model.HistoryChat
+	query := `SELECT * FROM pre_history_aichats WHERE user_id = ? ORDER BY update_time DESC LIMIT 1`
+	err := repository.DB.QueryRow(query, userID).Scan(&req.ID, &req.SessionID, &req.Model, &req.UserID, &req.LastMessages, &req.CreateTime, &req.UpdateTime, &req.Avatar)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return model.HistoryChat{}, fmt.Errorf("no session found for user_id: %d", userID)
+		}
+		return model.HistoryChat{}, fmt.Errorf("error querying latest session ID: %v", err)
+	}
+	return req, nil
+}

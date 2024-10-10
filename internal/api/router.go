@@ -28,4 +28,5 @@ func SetupRoutes() {
 	http.HandleFunc("/get-user", handleGetWorkspaceUsers)
 	http.HandleFunc("/update-last", handleUpdateLastChat)
 	http.HandleFunc("/get-list", handleGetChatList)
+	http.HandleFunc("/get-sessionid", handleGetSession)
 }

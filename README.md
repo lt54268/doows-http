@@ -97,3 +97,15 @@ body
   "user_id": 1
 }
 ```
+### 十、获取最新的session_id并返回所有字段 (POST)
+```
+http://127.0.0.1:5555/get-sessionid
+```
+```
+headers
+"Content-Type: application/json"
+body
+{
+  "user_id": 1
+}
+```
