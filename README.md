@@ -109,3 +109,16 @@ body
   "user_id": 1
 }
 ```
+### 十一、删除某个对话窗口 (DELETE)
+```
+http://127.0.0.1:5555/delete-session
+```
+```
+headers
+"Content-Type: application/json"
+body
+{
+  "workspaceSlug": "workspace-for-user-1",              // 工作区 Slug
+  "threadSlug": "d4c12455-92cc-442b-b701-58c4972dfcd0"  // 对话 Slug
+}
+```

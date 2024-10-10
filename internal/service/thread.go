@@ -108,3 +108,39 @@ func FetchLatestSessionIDByUserID(userID int) (model.HistoryChat, error) {
 	}
 	return req, nil
 }
+
+// 删除某个会话
+func DeleteExternalSession(workspaceSlug, threadSlug string) error {
+	url := fmt.Sprintf("http://103.63.139.165:3001/api/v1/workspace/%s/thread/%s", workspaceSlug, threadSlug)
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Authorization", "Bearer CM34YVB-3HJM2RS-PRGK1D2-ECZD4R6")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("failed to delete session: %s", body)
+	}
+
+	return nil
+}
+
+// 从数据库中删除该会话
+func DeleteSessionFromDatabase(sessionID string) error {
+	query := "DELETE FROM pre_history_aichats WHERE session_id = ?"
+	_, err := repository.DB.Exec(query, sessionID)
+	if err != nil {
+		return fmt.Errorf("error deleting session from database: %v", err)
+	}
+	return nil
+}

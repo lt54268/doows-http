@@ -55,24 +55,26 @@ func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count, err := service.CheckWorkspacePermissions(repository.DB)
-	if err != nil {
-		JsonResponse(w, map[string]string{"error": "Failed to check workspace permissions"}, http.StatusInternalServerError)
-		return
-	}
-
-	// 允许的最大工作区数量
-	const maxAllowed = 3
-	if count >= maxAllowed {
-		JsonResponse(w, map[string]string{"error": "The limit of non-empty workspace_ids has been reached"}, http.StatusForbidden)
-		return
-	}
-
 	var req model.SetPermissionRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
 		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
 		return
+	}
+
+	if req.IsCreate {
+		count, err := service.CheckWorkspacePermissions(repository.DB)
+		if err != nil {
+			JsonResponse(w, map[string]string{"error": "Failed to check workspace permissions"}, http.StatusInternalServerError)
+			return
+		}
+
+		// 允许的最大工作区数量
+		const maxAllowed = 3
+		if count >= maxAllowed {
+			JsonResponse(w, map[string]string{"error": "The limit of non-empty workspace_ids has been reached"}, http.StatusForbidden)
+			return
+		}
 	}
 
 	resp, err := service.SetPermission(req)
@@ -114,6 +116,16 @@ func handleCreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
+		return
+	}
+
+	hasPermission, err := service.CheckUserCreatePermission(req.UserID)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
+		return
+	}
+	if !hasPermission {
+		JsonResponse(w, map[string]string{"error": "User does not have permission to create workspace"}, http.StatusForbidden)
 		return
 	}
 
@@ -300,4 +312,30 @@ func handleGetSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JsonResponse(w, session, http.StatusOK)
+}
+
+// 删除会话路由
+func handleDeleteSession(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		JsonResponse(w, map[string]string{"error": "Only DELETE method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.ChatHistoryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JsonResponse(w, map[string]string{"error": "Invalid request body"}, http.StatusBadRequest)
+		return
+	}
+
+	if err := service.DeleteExternalSession(req.WorkspaceSlug, req.ThreadSlug); err != nil {
+		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	if err := service.DeleteSessionFromDatabase(req.ThreadSlug); err != nil {
+		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	JsonResponse(w, map[string]string{"message": "Session deleted successfully"}, http.StatusOK)
 }

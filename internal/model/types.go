@@ -51,12 +51,12 @@ type ChatMessage struct {
 }
 
 type HistoryChat struct {
-	ID           int64  `json:"id"`
-	SessionID    string `json:"session_id"`
-	Model        string `json:"model"`
-	UserID       string `json:"user_id"`
-	LastMessages string `json:"last_messages"`
-	CreateTime   string `json:"create_time"`
-	UpdateTime   string `json:"update_time"`
-	Avatar       string `json:"avatar"`
+	ID           int64     `json:"id"`
+	SessionID    string    `json:"session_id"`
+	Model        string    `json:"model"`
+	UserID       int64     `json:"user_id"`
+	LastMessages string    `json:"last_messages"`
+	CreateTime   time.Time `json:"create_time"`
+	UpdateTime   time.Time `json:"update_time"`
+	Avatar       string    `json:"avatar"`
 }

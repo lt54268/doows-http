@@ -58,3 +58,17 @@ func GetUsersWithCreatePermission(userID int) (bool, error) {
 
 	return isCreate == 1, nil
 }
+
+// 检查用户是否有创建工作区的权限
+func CheckUserCreatePermission(userID int) (bool, error) {
+	var isCreate bool
+	query := `SELECT is_create FROM pre_workspace_permissions WHERE user_id = ?`
+	err := repository.DB.QueryRow(query, userID).Scan(&isCreate)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("no permissions found for user_id: %d", userID)
+		}
+		return false, err
+	}
+	return isCreate, nil
+}
