@@ -316,6 +316,7 @@ func handleGetSession(w http.ResponseWriter, r *http.Request) {
 
 // 删除会话路由
 func handleDeleteSession(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
 	if r.Method != "DELETE" {
 		JsonResponse(w, map[string]string{"error": "Only DELETE method is allowed"}, http.StatusMethodNotAllowed)
 		return
@@ -338,4 +339,27 @@ func handleDeleteSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JsonResponse(w, map[string]string{"message": "Session deleted successfully"}, http.StatusOK)
+}
+
+// 判断是否为管理员路由
+func handleIsAdmin(w http.ResponseWriter, r *http.Request) {
+	setupCORS(&w, r)
+	if r.Method != "POST" {
+		JsonResponse(w, map[string]string{"error": "Only POST method is allowed"}, http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.CreateWorkspaceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JsonResponse(w, map[string]string{"error": "Invalid request body"}, http.StatusBadRequest)
+		return
+	}
+
+	isAdmin, err := service.CheckIfUserIsAdmin(req.UserID)
+	if err != nil {
+		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	JsonResponse(w, map[string]bool{"is_admin": isAdmin}, http.StatusOK)
 }

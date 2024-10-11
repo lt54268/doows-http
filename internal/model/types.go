@@ -54,7 +54,7 @@ type HistoryChat struct {
 	ID           int64     `json:"id"`
 	SessionID    string    `json:"session_id"`
 	Model        string    `json:"model"`
-	UserID       int64     `json:"user_id"`
+	UserID       string    `json:"user_id"`
 	LastMessages string    `json:"last_messages"`
 	CreateTime   time.Time `json:"create_time"`
 	UpdateTime   time.Time `json:"update_time"`

@@ -122,3 +122,15 @@ body
   "threadSlug": "d4c12455-92cc-442b-b701-58c4972dfcd0"  // 对话 Slug
 }
 ```
+### 十二、查询是否为管理员 (POST)
+```
+http://127.0.0.1:5555/is-admin
+```
+```
+headers
+"Content-Type: application/json"
+body
+{
+  "user_id": 1
+}
+```

@@ -30,4 +30,5 @@ func SetupRoutes() {
 	http.HandleFunc("/get-list", handleGetChatList)
 	http.HandleFunc("/get-sessionid", handleGetSession)
 	http.HandleFunc("/delete-session", handleDeleteSession)
+	http.HandleFunc("/is-admin", handleIsAdmin)
 }

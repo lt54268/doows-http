@@ -5,6 +5,7 @@ import (
 	"doows/internal/model"
 	"doows/internal/repository"
 	"fmt"
+	"strings"
 )
 
 // 更新数据库中的权限设置
@@ -71,4 +72,20 @@ func CheckUserCreatePermission(userID int) (bool, error) {
 		return false, err
 	}
 	return isCreate, nil
+}
+
+// 检查用户是否为管理员
+func CheckIfUserIsAdmin(userID int) (bool, error) {
+	var identity string
+	query := `SELECT identity FROM pre_users WHERE userid = ?`
+	err := repository.DB.QueryRow(query, userID).Scan(&identity)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("no user found with user_id: %d", userID)
+		}
+		return false, err
+	}
+
+	// 检查 identity 字段是否包含 "admin"
+	return strings.Contains(identity, "admin"), nil
 }
