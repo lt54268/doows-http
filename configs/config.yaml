@@ -1,6 +1,6 @@
 database:
-  host: "localhost"
-  port: 33306
+  host: "192.168.31.103"
+  port: 51396
   username: "dootask"
   password: "123456"
   dbname: "dootask"
