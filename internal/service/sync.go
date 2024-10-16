@@ -4,22 +4,21 @@ import (
 	"doows/internal/repository"
 	"doows/pkg/settime"
 	"log"
-	"time"
 )
 
 // 设置定时
-func SyncUsers() {
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
+// func SyncUsers() {
+// 	ticker := time.NewTicker(30 * time.Second)
+// 	defer ticker.Stop()
 
-	for range ticker.C {
-		log.Println("Syncing users...")
-		syncUsers()
-	}
-}
+// 	for range ticker.C {
+// 		log.Println("Syncing users...")
+// 		syncUsers()
+// 	}
+// }
 
 // 同步 pre_users 表用户
-func syncUsers() {
+func SyncUsers() {
 	currentTime := settime.GetCurrentFormattedTime()
 	tx, err := repository.DB.Begin()
 	if err != nil {
@@ -60,5 +59,5 @@ func syncUsers() {
 		return
 	}
 
-	log.Println("Sync completed successfully")
+	//log.Println("Sync completed successfully")
 }

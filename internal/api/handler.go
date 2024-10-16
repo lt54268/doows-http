@@ -24,25 +24,25 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 // 同步路由
-func handleSync(w http.ResponseWriter, r *http.Request) {
-	setupCORS(&w, r)
-	if r.Method == "OPTIONS" {
-		return
-	}
-	if r.Method != "GET" {
-		JsonResponse(w, map[string]string{"error": "Only GET method is allowed"}, http.StatusMethodNotAllowed)
-		return
-	}
+// func handleSync(w http.ResponseWriter, r *http.Request) {
+// 	setupCORS(&w, r)
+// 	if r.Method == "OPTIONS" {
+// 		return
+// 	}
+// 	if r.Method != "GET" {
+// 		JsonResponse(w, map[string]string{"error": "Only GET method is allowed"}, http.StatusMethodNotAllowed)
+// 		return
+// 	}
 
-	go service.SyncUsers()
-	response := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Sync started",
-	}
+// 	go service.SyncUsers()
+// 	response := struct {
+// 		Message string `json:"message"`
+// 	}{
+// 		Message: "Sync started",
+// 	}
 
-	JsonResponse(w, response, http.StatusOK)
-}
+// 	JsonResponse(w, response, http.StatusOK)
+// }
 
 // 设置权限路由
 func handleSetPermission(w http.ResponseWriter, r *http.Request) {
@@ -61,6 +61,8 @@ func handleSetPermission(w http.ResponseWriter, r *http.Request) {
 		JsonResponse(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
 		return
 	}
+
+	service.SyncUsers()
 
 	if req.IsCreate {
 		count, err := service.CheckWorkspacePermissions(repository.DB)

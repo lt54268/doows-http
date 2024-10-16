@@ -19,7 +19,7 @@ func setupCORS(w *http.ResponseWriter, req *http.Request) {
 
 func SetupRoutes() {
 	http.HandleFunc("/", handleIndex)
-	http.HandleFunc("/sync", handleSync)
+	// http.HandleFunc("/sync", handleSync)
 	http.HandleFunc("/set", handleSetPermission)
 	http.HandleFunc("/check", handleCheckWorkspaceID)
 	http.HandleFunc("/create", handleCreateWorkspace)
